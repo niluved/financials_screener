@@ -1,10 +1,13 @@
 import yfinance as yf
 import pandas as pd
 import os
+import matplotlib.pyplot as plt
+import numpy as np
 
 
 # Lista dei ticker che vuoi analizzare
-tickers = ['AMZN']
+tickers = ['AAPL', 'GOOGL', 'MSFT', 'AMZN',
+           'FB', 'TSLA', 'NVDA', 'JPM', 'V', 'JNJ']
 
 
 def load_or_download_data(tickers, filename='financial_data.csv'):
@@ -110,6 +113,34 @@ def get_financial_data(ticker):
     return data
 
 
+def create_scatter_plot(df, x_indicator, y_indicator):
+    plt.figure(figsize=(12, 8))
+    plt.scatter(df[x_indicator], df[y_indicator], alpha=0.5)
+
+    for i, ticker in enumerate(df['Ticker']):
+        plt.annotate(ticker, (df[x_indicator].iloc[i],
+                     df[y_indicator].iloc[i]))
+
+    plt.xlabel(x_indicator)
+    plt.ylabel(y_indicator)
+    plt.title(f'{x_indicator} vs {y_indicator}')
+
+    # Aggiunge una linea di regressione
+    z = np.polyfit(df[x_indicator], df[y_indicator], 1)
+    p = np.poly1d(z)
+    plt.plot(df[x_indicator], p(df[x_indicator]), "r--", alpha=0.8)
+
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+
+    # Salva il grafico come immagine
+    filename = f'{x_indicator.lower().replace(" ", "_")}_vs_{y_indicator.lower().replace(" ", "_")}.png'
+    plt.savefig(filename)
+    print(f"Il grafico è stato salvato come '{filename}'")
+
+    plt.show()
+
+
 # Carica o scarica i dati
 df = load_or_download_data(tickers)
 
@@ -129,3 +160,30 @@ print(df.sort_values('ROA_adj', ascending=False)[['Ticker', 'ROA_adj']].head())
 print("\nAziende con il miglior EbitPriceRatio:")
 print(df.sort_values('EbitPriceRatio', ascending=False)
       [['Ticker', 'EbitPriceRatio']].head())
+
+# Funzione per chiedere all'utente di scegliere un indicatore
+
+
+def choose_indicator(prompt):
+    print("\nIndicatori disponibili:")
+    for i, col in enumerate(df.columns[1:], 1):  # Esclude 'Ticker'
+        print(f"{i}. {col}")
+    while True:
+        try:
+            choice = int(input(prompt))
+            if 1 <= choice <= len(df.columns) - 1:
+                return df.columns[choice]
+            else:
+                print("Scelta non valida. Riprova.")
+        except ValueError:
+            print("Per favore, inserisci un numero.")
+
+
+# Chiedi all'utente di scegliere gli indicatori per lo scatter plot
+x_indicator = choose_indicator(
+    "Scegli il numero dell'indicatore per l'asse X: ")
+y_indicator = choose_indicator(
+    "Scegli il numero dell'indicatore per l'asse Y: ")
+
+# Crea e mostra lo scatter plot
+create_scatter_plot(df, x_indicator, y_indicator)
