@@ -147,6 +147,7 @@ df = load_or_download_data(tickers)
 # Ora puoi lavorare con il DataFrame 'df' che contiene i dati finanziari
 print(df.head())
 
+'''
 # Esempio di alcune analisi che potresti voler fare:
 print("\nStatistiche descrittive:")
 print(df.describe())
@@ -160,10 +161,10 @@ print(df.sort_values('ROA_adj', ascending=False)[['Ticker', 'ROA_adj']].head())
 print("\nAziende con il miglior EbitPriceRatio:")
 print(df.sort_values('EbitPriceRatio', ascending=False)
       [['Ticker', 'EbitPriceRatio']].head())
+'''
+
 
 # Funzione per chiedere all'utente di scegliere un indicatore
-
-
 def choose_indicator(prompt):
     print("\nIndicatori disponibili:")
     for i, col in enumerate(df.columns[1:], 1):  # Esclude 'Ticker'
