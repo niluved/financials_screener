@@ -220,7 +220,11 @@ def clean_and_prepare_data(df, x_indicator, y_indicator, size_indicator):
     for col in [x_indicator, y_indicator, size_indicator]:
         df.loc[:, col] = df[col].fillna(df[col].median())
 
-    print(f"Dimensioni dopo la sostituzione dei NaN: {df.shape}")
+    # Imposta i valori negativi a 0 per la colonna size
+    df.loc[df[size_indicator] < 0, size_indicator] = 0
+
+    print(
+        f"Dimensioni dopo la sostituzione dei NaN e correzione dei valori negativi: {df.shape}")
 
     # Rimuovi i valori infiniti o troppo grandi
     df = df[(df[x_indicator].abs() < 1e100) &
@@ -257,7 +261,8 @@ def create_bubble_chart(df, x_indicator, y_indicator, size_indicator):
                      color="Industry",
                      hover_name="Description",
                      log_x=True,
-                     size_max=60)
+                     size_max=60,
+                     text="Ticker")  # Aggiungi il testo per le etichette
 
     # Personalizza il layout
     fig.update_layout(
@@ -265,6 +270,9 @@ def create_bubble_chart(df, x_indicator, y_indicator, size_indicator):
         xaxis_title=x_indicator,
         yaxis_title=y_indicator,
     )
+
+    # Personalizza la visualizzazione delle etichette
+    fig.update_traces(textposition='top center')
 
     # Mostra il grafico
     fig.show()
@@ -315,8 +323,6 @@ y_indicator = choose_indicator(
 size_indicator = choose_indicator(
     "Scegli il numero dell'indicatore per la dimensione delle bolle: ")
 
-# Ora puoi lavorare con il DataFrame 'df' che contiene i dati finanziari
-print(df)
 
 # Crea e mostra il grafico a bolle
 create_bubble_chart(df, x_indicator, y_indicator, size_indicator)
