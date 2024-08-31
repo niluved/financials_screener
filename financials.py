@@ -1,8 +1,9 @@
 import yfinance as yf
 import pandas as pd
 import os
-import matplotlib.pyplot as plt
-import numpy as np
+import plotly.express as px
+# import matplotlib.pyplot as plt
+# import numpy as np
 
 
 # Lista dei ticker che vuoi analizzare
@@ -163,6 +164,7 @@ def get_financial_data(ticker):
     return data
 
 
+'''
 def create_scatter_plot(df, x_indicator, y_indicator):
     plt.figure(figsize=(12, 8))
     plt.scatter(df[x_indicator], df[y_indicator], alpha=0.5)
@@ -175,48 +177,97 @@ def create_scatter_plot(df, x_indicator, y_indicator):
     plt.ylabel(y_indicator)
     plt.title(f'{x_indicator} vs {y_indicator}')
 
-    '''
-    # Aggiunge una linea di regressione
-    z = np.polyfit(df[x_indicator], df[y_indicator], 1)
-    p = np.poly1d(z)
-    plt.plot(df[x_indicator], p(df[x_indicator]), "r--", alpha=0.8)
-
-    plt.grid(True, alpha=0.3)
-    plt.tight_layout()
-    '''
-
     # Salva il grafico come immagine
     filename = f'{x_indicator.lower().replace(" ", "_")}_vs_{y_indicator.lower().replace(" ", "_")}.png'
     plt.savefig(filename)
     print(f"Il grafico è stato salvato come '{filename}'")
 
     plt.show()
-
-
-# Carica o scarica i dati
-df = load_or_download_data(tickers)
-
-# Ora puoi lavorare con il DataFrame 'df' che contiene i dati finanziari
-print(df.head())
-
-# stampa le prime righe del DataFrame con i long name e i tickers
-print(df[['Ticker', 'Description']].head())
-
 '''
-# Esempio di alcune analisi che potresti voler fare:
-print("\nStatistiche descrittive:")
-print(df.describe())
 
-print("\nMedia degli indicatori principali:")
-print(df[['ROA_adj', 'EbitPriceRatio', 'P/E Ratio', 'Debt to Equity']].mean())
 
-print("\nAziende con il miglior ROA_adj:")
-print(df.sort_values('ROA_adj', ascending=False)[['Ticker', 'ROA_adj']].head())
+def clean_and_prepare_data(df, x_indicator, y_indicator, size_indicator):
+    print(f"Dimensioni originali del DataFrame: {df.shape}")
+    print(
+        f"Colonne selezionate: {x_indicator}, {y_indicator}, {size_indicator}")
 
-print("\nAziende con il miglior EbitPriceRatio:")
-print(df.sort_values('EbitPriceRatio', ascending=False)
-      [['Ticker', 'EbitPriceRatio']].head())
-'''
+    # Crea una copia esplicita del DataFrame
+    df = df.copy()
+
+    # Stampa i tipi di dati delle colonne selezionate
+    print(f"Tipi di dati delle colonne selezionate:")
+    print(df[[x_indicator, y_indicator, size_indicator]].dtypes)
+
+    # Stampa alcuni valori di esempio per ogni colonna
+    print(f"Primi 5 valori per {x_indicator}:",
+          df[x_indicator].head().tolist())
+    print(f"Primi 5 valori per {y_indicator}:",
+          df[y_indicator].head().tolist())
+    print(f"Primi 5 valori per {size_indicator}:",
+          df[size_indicator].head().tolist())
+
+    # Rimuovi le righe solo se tutte e tre le colonne hanno valori nulli
+    df = df.dropna(subset=[x_indicator, y_indicator,
+                   size_indicator], how='all')
+    print(
+        f"Dimensioni dopo la rimozione delle righe completamente nulle: {df.shape}")
+
+    # Converti le colonne in numeri, ignorando eventuali errori
+    for col in [x_indicator, y_indicator, size_indicator]:
+        df.loc[:, col] = pd.to_numeric(df[col], errors='coerce')
+
+    # Sostituisci i valori NaN con la mediana della colonna
+    for col in [x_indicator, y_indicator, size_indicator]:
+        df.loc[:, col] = df[col].fillna(df[col].median())
+
+    print(f"Dimensioni dopo la sostituzione dei NaN: {df.shape}")
+
+    # Rimuovi i valori infiniti o troppo grandi
+    df = df[(df[x_indicator].abs() < 1e100) &
+            (df[y_indicator].abs() < 1e100) &
+            (df[size_indicator].abs() < 1e100)]
+    print(f"Dimensioni finali del DataFrame: {df.shape}")
+
+    # Stampa alcuni valori finali di esempio per ogni colonna
+    print(f"Primi 5 valori finali per {x_indicator}:",
+          df[x_indicator].head().tolist())
+    print(f"Primi 5 valori finali per {y_indicator}:",
+          df[y_indicator].head().tolist())
+    print(f"Primi 5 valori finali per {size_indicator}:",
+          df[size_indicator].head().tolist())
+
+    return df
+
+
+def create_bubble_chart(df, x_indicator, y_indicator, size_indicator):
+    # Pulisci e prepara i dati
+    df_clean = clean_and_prepare_data(
+        df, x_indicator, y_indicator, size_indicator)
+
+    # Verifica se ci sono dati sufficienti per creare il grafico
+    if len(df_clean) < 2:
+        print("Non ci sono abbastanza dati validi per creare il grafico.")
+        return
+
+    # Crea il grafico
+    fig = px.scatter(df_clean,
+                     x=x_indicator,
+                     y=y_indicator,
+                     size=size_indicator,
+                     color="Industry",
+                     hover_name="Description",
+                     log_x=True,
+                     size_max=60)
+
+    # Personalizza il layout
+    fig.update_layout(
+        title=f"{y_indicator} vs {x_indicator}",
+        xaxis_title=x_indicator,
+        yaxis_title=y_indicator,
+    )
+
+    # Mostra il grafico
+    fig.show()
 
 
 # Funzione per chiedere all'utente di scegliere un indicatore
@@ -236,11 +287,36 @@ def choose_indicator(prompt):
             print("Per favore, inserisci un numero.")
 
 
-# Chiedi all'utente di scegliere gli indicatori per lo scatter plot
+# Carica o scarica i dati
+df = load_or_download_data(tickers)
+
+
+'''
+# Esempio di alcune analisi che potresti voler fare:
+print("\nStatistiche descrittive:")
+print(df.describe())
+
+print("\nMedia degli indicatori principali:")
+print(df[['ROA_adj', 'EbitPriceRatio', 'P/E Ratio', 'Debt to Equity']].mean())
+
+print("\nAziende con il miglior ROA_adj:")
+print(df.sort_values('ROA_adj', ascending=False)[['Ticker', 'ROA_adj']].head())
+
+print("\nAziende con il miglior EbitPriceRatio:")
+print(df.sort_values('EbitPriceRatio', ascending=False)
+      [['Ticker', 'EbitPriceRatio']].head())
+'''
+
+# Chiedi all'utente di scegliere gli indicatori per il grafico
 x_indicator = choose_indicator(
     "Scegli il numero dell'indicatore per l'asse X: ")
 y_indicator = choose_indicator(
     "Scegli il numero dell'indicatore per l'asse Y: ")
+size_indicator = choose_indicator(
+    "Scegli il numero dell'indicatore per la dimensione delle bolle: ")
 
-# Crea e mostra lo scatter plot
-create_scatter_plot(df, x_indicator, y_indicator)
+# Ora puoi lavorare con il DataFrame 'df' che contiene i dati finanziari
+print(df)
+
+# Crea e mostra il grafico a bolle
+create_bubble_chart(df, x_indicator, y_indicator, size_indicator)
