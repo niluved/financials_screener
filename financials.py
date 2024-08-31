@@ -111,6 +111,7 @@ def get_financial_data(ticker):
     # Crea un dizionario con i dati
     data = {
         'Ticker': ticker,
+        'Description': info.get('longName', None),
         'Total Assets': total_assets,
         'Equity': equity,
         'EBIT': ebit,
@@ -187,6 +188,9 @@ df = load_or_download_data(tickers)
 # Ora puoi lavorare con il DataFrame 'df' che contiene i dati finanziari
 print(df.head())
 
+# stampa le prime righe del DataFrame con i long name e i tickers
+print(df[['Ticker', 'Description']].head())
+
 '''
 # Esempio di alcune analisi che potresti voler fare:
 print("\nStatistiche descrittive:")
@@ -207,11 +211,12 @@ print(df.sort_values('EbitPriceRatio', ascending=False)
 # Funzione per chiedere all'utente di scegliere un indicatore
 def choose_indicator(prompt):
     print("\nIndicatori disponibili:")
-    for i, col in enumerate(df.columns[1:], 1):  # Esclude 'Ticker'
+    # Esclude 'Ticker' e 'Description'
+    for i, col in enumerate(df.columns[2:], 1):
         print(f"{i}. {col}")
     while True:
         try:
-            choice = int(input(prompt))
+            choice = int(input(prompt)) + 1
             if 1 <= choice <= len(df.columns) - 1:
                 return df.columns[choice]
             else:
