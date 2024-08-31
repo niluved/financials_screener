@@ -15,7 +15,6 @@ tickers = ['A2A.MI',
            'BPE.MI',
            'BZU.MI',
            'CPR.MI',
-           'CNHI.MI',
            'DIA.MI',
            'ENEL.MI',
            'ENI.MI',
@@ -164,6 +163,7 @@ def create_scatter_plot(df, x_indicator, y_indicator):
     plt.ylabel(y_indicator)
     plt.title(f'{x_indicator} vs {y_indicator}')
 
+    '''
     # Aggiunge una linea di regressione
     z = np.polyfit(df[x_indicator], df[y_indicator], 1)
     p = np.poly1d(z)
@@ -171,6 +171,7 @@ def create_scatter_plot(df, x_indicator, y_indicator):
 
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
+    '''
 
     # Salva il grafico come immagine
     filename = f'{x_indicator.lower().replace(" ", "_")}_vs_{y_indicator.lower().replace(" ", "_")}.png'
