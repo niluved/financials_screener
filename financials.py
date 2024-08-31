@@ -110,8 +110,16 @@ def get_financial_data(ticker):
 
     # Crea un dizionario con i dati
     data = {
+        # informazioni generali
         'Ticker': ticker,
         'Description': info.get('longName', None),
+        'Industry': info.get('industry', None),
+        'Sector': info.get('sector', None),
+        'Country': info.get('country', None),
+        'Currency': info.get('currency', None),
+        'Exchange': info.get('exchange', None),
+
+        # informazioni del bilancio
         'Total Assets': total_assets,
         'Equity': equity,
         'EBIT': ebit,
@@ -133,6 +141,9 @@ def get_financial_data(ticker):
         'Gross Margins': info.get('grossMargins', None),
         'Operating Margins': info.get('operatingMargins', None),
         'Profit Margins': info.get('profitMargins', None),
+
+        # informazioni di prezzo
+        'Last Price': info.get('previousClose', None),
 
         # Previsioni di consensus
         'Forward P/E': info.get('forwardPE', None),
@@ -211,12 +222,12 @@ print(df.sort_values('EbitPriceRatio', ascending=False)
 # Funzione per chiedere all'utente di scegliere un indicatore
 def choose_indicator(prompt):
     print("\nIndicatori disponibili:")
-    # Esclude 'Ticker' e 'Description'
-    for i, col in enumerate(df.columns[2:], 1):
+    # Esclude 'Ticker' e 'Description' e le altre informazioni generali
+    for i, col in enumerate(df.columns[7:], 1):
         print(f"{i}. {col}")
     while True:
         try:
-            choice = int(input(prompt)) + 1
+            choice = int(input(prompt)) + 6
             if 1 <= choice <= len(df.columns) - 1:
                 return df.columns[choice]
             else:
